@@ -4,54 +4,43 @@ Project Name: Zenith System (The Pinnacle FFXI Enhancement Framework)
 Version: 1.0 (Agile Foundation)
 Date: October 24, 2025
 Architectural Philosophy: Decoupled & Secure Isolation
+Focus: Performance, Stability, and Modern DX (Developer Experience)
 
 ---
 
 1. HIGH-LEVEL ARCHITECTURE
-The Zenith System employs a multi-process, decoupled architecture to achieve maximum stability and isolate community code from the volatile FFXI client. Communication between processes is handled exclusively via high-speed Inter-Process Communication (IPC).
+The **Zenith System** employs a multi-process, decoupled architecture to achieve maximum stability and isolate community code from the volatile FFXI client. Communication between processes is handled exclusively via high-speed Inter-Process Communication (IPC).
 
 
 
 2. CORE COMPONENTS
 
-2.1. FFXI Client Process (Minimal Footprint)
+2.1. FFXI Client Process (The Zenith Probe)
 
-    * Component: Zenith Probe (Minimal DLL)
-    * Technology: Highly optimized C/C++ (for low-level memory access).
-    * Responsibilities:
-        * Locate critical memory pointers (HP, MP, coordinates, status flags).
-        * Serialize only the necessary game state into a structured, versioned format (e.g., Protocol Buffers).
-        * Manage the WRITE end of the IPC pipe, transmitting data out of the FFXI process.
-        * Implement robust signature scanning for resource location during updates.
-    * Goal: Be read-only, fail gracefully, and contain the absolute minimum logic required to read and transmit data.
+    * Component: **Zenith Probe** (Minimal DLL)
+    * Core Language: **C++20** (provides modern concurrency features, coroutines, and superior optimization).
+    * Memory Access: **Windows API** (Direct, highly optimized, low-level calls like `ReadProcessMemory`).
+    * Serialization: **Protocol Buffers (Protobuf) v3** or **FlatBuffers** (Language-agnostic, efficient data schema for minimal parsing overhead).
+    * IPC Endpoint: **Native Windows Named Pipes** (Robust, high-speed, asynchronous, and bidirectional communication).
+    * Responsibilities: Locate critical memory pointers, serialize game state, manage the WRITE end of the IPC pipe.
 
-2.2. Inter-Process Communication (IPC) Bridge
+2.2. External Logic Process (The Zenith Host)
 
-    * Technology: Named Pipes (Windows) or Shared Memory (for maximum throughput).
-    * Data Format: Structured, versioned payloads (Protocol Buffers recommended).
-    * Function: Acts as the high-speed, reliable conduit for game state transfer and command transfer (User Input/Script Commands).
+    * Component: **Zenith Host**
+    * Host Language: **C# 12 (.NET 8)** (Excellent cross-platform support, strong memory management, and high performance via the modern CoreCLR runtime).
+    * Scripting Runtime: **Node.js (LTS Version)** or **Python 3.12+** (Chosen for asynchronous nature and vast ecosystem to host Zenith Modules).
+    * IPC Client: **.NET NamedPipeClientStream** (Native, low-latency IPC client built into the .NET framework).
+    * Data Handling: **Protobuf/FlatBuffers Libraries** (Ensures seamless, type-safe data ingestion from the Zenith Probe).
 
-2.3. External Logic Process
+2.3. Graphics & User Interface (The Zenith Renderer)
 
-    * Component: Zenith Host
-    * Technology: Modern Runtime Environment (e.g., Node.js, C#, or Python) chosen for asynchronous operation and large ecosystem support.
-    * Responsibilities:
-        * Manage the READ end of the IPC pipe to ingest real-time game state.
-        * Host and manage the **External Scripting Runtime** for Zenith Modules.
-        * Provide a secure, abstracted API (the **Zenith API**) to Modules (e.g., Player.getHP()).
-        * Handle all complex game logic (GearSwap decisions, Mob tracking, etc.).
-
-2.4. Graphics & User Interface
-
-    * Component: Zenith Renderer
-    * Technology: DXGI/DirectX Overlay or specialized library (e.g., ImGui, Electron/React).
-    * Responsibilities:
-        * Create a transparent, top-level window positioned over the FFXI client.
-        * Render all custom UI (Zenith Module windows, chat boxes, HUD elements).
-        * The rendering is **fully decoupled** from the FFXI graphics pipeline, allowing for high-fidelity, high-FPS overlays.
+    * Component: **Zenith Renderer**
+    * Core Renderer: **DXGI Desktop Duplication API** & **ImGui** (DXGI for transparent overlay creation; ImGui for fast, immediate-mode GUI rendering and high refresh rates).
+    * UI Framework (Launcher/Manager): **Electron / React** or **WPF (.NET)** (Used for the **Zenith Launcher**, offering a rich, modern user experience for module management and updates).
+    * Responsibilities: Create a transparent, top-level window; render all custom UI (Zenith Module windows, HUD elements).
 
 3. SECURITY & STABILITY FEATURES
 
-    * Isolation: Game crashes (due to rendering or memory) are isolated to the FFXI process and will not necessarily crash the Zenith Host.
-    * Memory Protection: The Zenith Probe uses minimal write operations, limiting the chance of accidental memory corruption.
-    * Module Sandboxing: The External Scripting Runtime should implement sandboxing (e.g., Node.js worker threads) to prevent crashing Zenith Modules from compromising the entire Zenith Host.
+    * Isolation: Game crashes are isolated to the FFXI process and will not crash the **Zenith Host**.
+    * Memory Protection: The **Zenith Probe** is primarily read-only, limiting the chance of accidental memory corruption.
+    * Module Sandboxing: The External Scripting Runtime should implement sandboxing (e.g., Node.js worker threads) to prevent crashing **Zenith Modules** from compromising the entire **Zenith Host** process.
