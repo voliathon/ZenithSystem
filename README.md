@@ -1,4 +1,4 @@
-# 🌟 Zenith System (Aetherial View 2.0)
+# 🌟 Zenith System
 
 > **The Pinnacle FFXI Enhancement Framework.** Built on a secure, crash-resistant, decoupled architecture.
 
